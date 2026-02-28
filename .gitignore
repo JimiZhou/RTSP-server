@@ -1,0 +1,12 @@
+node_modules
+out
+dist
+.DS_Store
+*.log
+.npm-cache
+
+# Platform binaries are downloaded during CI release build.
+resources/bin/darwin-arm64/*
+resources/bin/darwin-x64/*
+resources/bin/win32-x64/*
+resources/bin/linux-x64/*
