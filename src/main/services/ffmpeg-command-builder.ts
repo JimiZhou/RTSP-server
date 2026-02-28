@@ -117,6 +117,11 @@ function safeSegment(value: string): string {
   return value.trim().replace(/^\/+/, '').replace(/\s+/g, '-')
 }
 
+function isWildcardHost(host: string): boolean {
+  const normalized = host.trim().toLowerCase()
+  return normalized === '0.0.0.0' || normalized === '::' || normalized === '[::]'
+}
+
 export function buildFFmpegCommand(
   task: StreamTask,
   settings: AppSettings,
@@ -129,9 +134,11 @@ export function buildFFmpegCommand(
     throw new Error('Task path is empty')
   }
 
-  const user = encodeURIComponent(settings.authUsername)
-  const pass = encodeURIComponent(settings.authPassword)
-  const outputUrl = `rtsp://${user}:${pass}@${settings.listenHost}:${settings.listenPort}/${pathSegment}`
+  const publishHost = isWildcardHost(settings.listenHost) ? '127.0.0.1' : settings.listenHost.trim()
+  const authPrefix = settings.enableAuth
+    ? `${encodeURIComponent(settings.authUsername)}:${encodeURIComponent(settings.authPassword)}@`
+    : ''
+  const outputUrl = `rtsp://${authPrefix}${publishHost}:${settings.listenPort}/${pathSegment}`
 
   const args: string[] = ['-hide_banner', '-loglevel', 'info', '-re']
 

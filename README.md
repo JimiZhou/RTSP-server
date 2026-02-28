@@ -9,7 +9,8 @@ A cross-platform Electron desktop app to stream local video files as RTSP stream
 - Built-in RTSP server (MediaMTX)
 - Built-in FFmpeg process orchestration
 - Hardware acceleration policies: `auto`, `cpu`, `qsv`, `nvenc`
-- Default local-only binding (`127.0.0.1`) with username/password auth
+- LAN-friendly binding option (`0.0.0.0`) for local network access
+- Optional username/password auth (can be disabled for anonymous plain RTSP)
 - Task config persistence (without auto-start on app relaunch)
 
 ## Tech Stack

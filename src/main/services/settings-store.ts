@@ -17,8 +17,9 @@ function createPassword(): string {
 
 function defaultSettings(): AppSettings {
   return {
-    listenHost: '127.0.0.1',
+    listenHost: '0.0.0.0',
     listenPort: 8554,
+    enableAuth: true,
     authUsername: 'rtspuser',
     authPassword: createPassword(),
     defaultHwAccelPolicy: 'auto'
@@ -136,6 +137,8 @@ export class SettingsStore {
       ...partial
     }
 
+    next.listenHost = next.listenHost.trim()
+
     if (!next.listenHost) {
       throw new Error('listenHost is required')
     }
@@ -144,12 +147,16 @@ export class SettingsStore {
       throw new Error('listenPort must be between 1 and 65535')
     }
 
-    if (!next.authUsername) {
-      throw new Error('authUsername is required')
-    }
+    next.authUsername = next.authUsername.trim()
 
-    if (!next.authPassword) {
-      throw new Error('authPassword is required')
+    if (next.enableAuth) {
+      if (!next.authUsername) {
+        throw new Error('authUsername is required when auth is enabled')
+      }
+
+      if (!next.authPassword) {
+        throw new Error('authPassword is required when auth is enabled')
+      }
     }
 
     config.settings = next
@@ -301,11 +308,12 @@ export class SettingsStore {
     const settingsRaw: Partial<AppSettings> = raw.settings ?? {}
 
     const settings: AppSettings = {
-      listenHost: settingsRaw.listenHost || '127.0.0.1',
+      listenHost: settingsRaw.listenHost || '0.0.0.0',
       listenPort:
         Number.isInteger(settingsRaw.listenPort) && (settingsRaw.listenPort as number) > 0
           ? (settingsRaw.listenPort as number)
           : 8554,
+      enableAuth: settingsRaw.enableAuth !== false,
       authUsername: settingsRaw.authUsername || 'rtspuser',
       authPassword: settingsRaw.authPassword || createPassword(),
       defaultHwAccelPolicy:

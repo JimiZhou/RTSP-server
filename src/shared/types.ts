@@ -44,6 +44,7 @@ export interface StreamTaskPayload {
 export interface AppSettings {
   listenHost: string
   listenPort: number
+  enableAuth: boolean
   authUsername: string
   authPassword: string
   defaultHwAccelPolicy: HwAccelPolicy

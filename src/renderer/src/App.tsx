@@ -30,8 +30,9 @@ interface TaskFormState {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  listenHost: '127.0.0.1',
+  listenHost: '0.0.0.0',
   listenPort: 8554,
+  enableAuth: true,
   authUsername: 'rtspuser',
   authPassword: '',
   defaultHwAccelPolicy: 'auto'
@@ -169,6 +170,27 @@ function shortTime(iso: string): string {
   }
 }
 
+function isWildcardHost(host: string): boolean {
+  const normalized = host.trim().toLowerCase()
+  return normalized === '0.0.0.0' || normalized === '::' || normalized === '[::]'
+}
+
+function streamAccessHost(listenHost: string): string {
+  if (isWildcardHost(listenHost)) {
+    return '<本机局域网IP>'
+  }
+
+  return listenHost
+}
+
+function streamDisplayUrl(task: StreamTask, settings: AppSettings): string {
+  const host = streamAccessHost(settings.listenHost)
+  const authPrefix = settings.enableAuth
+    ? `${encodeURIComponent(settings.authUsername)}:${encodeURIComponent(settings.authPassword)}@`
+    : ''
+  return `rtsp://${authPrefix}${host}:${settings.listenPort}/${task.path}`
+}
+
 export function App(): JSX.Element {
   const [loaded, setLoaded] = useState(false)
   const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -183,6 +205,7 @@ export function App(): JSX.Element {
   const [logs, setLogs] = useState<UILogLine[]>([])
 
   const serverRunning = serverStatus.state === 'running' || serverStatus.state === 'starting'
+  const lanEnabled = isWildcardHost(settings.listenHost)
 
   const streamCountLabel = useMemo(() => {
     const running = tasks.filter((task) => task.status === 'running' || task.status === 'starting').length
@@ -478,6 +501,7 @@ export function App(): JSX.Element {
               <input
                 value={settings.listenHost}
                 onChange={(event) => setSettings((prev) => ({ ...prev, listenHost: event.target.value }))}
+                placeholder="127.0.0.1 或 0.0.0.0"
               />
             </label>
             <label>
@@ -490,11 +514,36 @@ export function App(): JSX.Element {
                 onChange={(event) => setSettings((prev) => ({ ...prev, listenPort: Number(event.target.value) }))}
               />
             </label>
+            <div className="host-shortcuts span-2">
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => setSettings((prev) => ({ ...prev, listenHost: '127.0.0.1' }))}
+              >
+                仅本机访问 (127.0.0.1)
+              </button>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => setSettings((prev) => ({ ...prev, listenHost: '0.0.0.0' }))}
+              >
+                允许局域网访问 (0.0.0.0)
+              </button>
+            </div>
+            <label className="inline-check span-2">
+              <input
+                type="checkbox"
+                checked={settings.enableAuth}
+                onChange={(event) => setSettings((prev) => ({ ...prev, enableAuth: event.target.checked }))}
+              />
+              启用账号密码鉴权（关闭后允许匿名、不加密 RTSP）
+            </label>
             <label>
               鉴权用户名
               <input
                 value={settings.authUsername}
                 onChange={(event) => setSettings((prev) => ({ ...prev, authUsername: event.target.value }))}
+                disabled={!settings.enableAuth}
               />
             </label>
             <label>
@@ -502,6 +551,7 @@ export function App(): JSX.Element {
               <input
                 value={settings.authPassword}
                 onChange={(event) => setSettings((prev) => ({ ...prev, authPassword: event.target.value }))}
+                disabled={!settings.enableAuth}
               />
             </label>
             <label>
@@ -523,6 +573,11 @@ export function App(): JSX.Element {
               </select>
             </label>
           </div>
+          <p className="subtle">
+            当前网络范围：{lanEnabled ? '局域网可访问' : '仅本机可访问'}。若要让局域网设备访问，请确保系统防火墙已放行端口
+            {' '}
+            {settings.listenPort}。
+          </p>
           <div className="toolbar">
             <button className="btn" onClick={() => void saveSettings()} disabled={busyKey === 'settings'}>
               保存设置
@@ -680,7 +735,7 @@ export function App(): JSX.Element {
               ) : (
                 tasks.map((task) => {
                   const isRunning = task.status === 'running' || task.status === 'starting'
-                  const streamUrl = `rtsp://${settings.listenHost}:${settings.listenPort}/${task.path}`
+                  const streamUrl = streamDisplayUrl(task, settings)
                   return (
                     <tr key={task.id}>
                       <td>

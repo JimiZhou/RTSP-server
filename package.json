@@ -1,6 +1,6 @@
 {
   "name": "rtsp-streamer-electron",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Electron GUI app for RTSP streaming local video files with FFmpeg",
   "main": "out/main/index.js",
   "type": "module",
@@ -43,6 +43,9 @@
       }
     ],
     "mac": {
+      "extendInfo": {
+        "NSLocalNetworkUsageDescription": "允许 RTSP Streamer 在局域网内收发 RTSP 视频流。"
+      },
       "target": [
         "dmg"
       ]

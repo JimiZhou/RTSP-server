@@ -23,21 +23,37 @@ function yamlQuote(value: string): string {
 }
 
 function renderConfig(settings: AppSettings): string {
-  return [
+  const lines = [
     'logLevel: info',
     `rtspAddress: ${settings.listenHost}:${settings.listenPort}`,
     'rtspTransports: [tcp, udp]',
-    'authMethod: internal',
-    'authInternalUsers:',
-    `  - user: ${yamlQuote(settings.authUsername)}`,
-    `    pass: ${yamlQuote(settings.authPassword)}`,
-    '    permissions:',
-    '      - action: publish',
-    '      - action: read',
-    'paths:',
-    '  all_others:',
-    '    source: publisher'
-  ].join('\n')
+    'rtspEncryption: "no"'
+  ]
+
+  if (settings.enableAuth) {
+    lines.push(
+      'authMethod: internal',
+      'authInternalUsers:',
+      `  - user: ${yamlQuote(settings.authUsername)}`,
+      `    pass: ${yamlQuote(settings.authPassword)}`,
+      '    permissions:',
+      '      - action: publish',
+      '      - action: read'
+    )
+  } else {
+    lines.push(
+      'authMethod: internal',
+      'authInternalUsers:',
+      '  - user: any',
+      '    permissions:',
+      '      - action: publish',
+      '      - action: read'
+    )
+  }
+
+  lines.push('paths:', '  all_others:', '    source: publisher')
+
+  return lines.join('\n')
 }
 
 export class RTSPServerManager extends EventEmitter {

@@ -136,10 +136,29 @@ button:focus {
   outline-offset: 1px;
 }
 
+input:disabled,
+select:disabled {
+  background: #edf3ee;
+  color: #5f6a62;
+  cursor: not-allowed;
+}
+
 .file-row {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.55rem;
+}
+
+.host-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.host-shortcuts .btn {
+  background: #eef7ff;
+  border-color: #8da7c2;
+  color: #29465e;
 }
 
 .inline-check {
