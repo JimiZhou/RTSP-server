@@ -28,6 +28,9 @@ jobs:
       - name: Download macOS Binaries
         run: bash scripts/download-binaries.sh mac
 
+      - name: Build App Bundles
+        run: npm run build
+
       - name: Build macOS Packages
         run: npx electron-builder --mac dmg --x64 --arm64
 
@@ -57,6 +60,9 @@ jobs:
       - name: Download Windows Binaries
         shell: bash
         run: bash scripts/download-binaries.sh win
+
+      - name: Build App Bundles
+        run: npm run build
 
       - name: Build Windows Package
         run: npx electron-builder --win nsis --x64
@@ -91,6 +97,9 @@ jobs:
 
       - name: Download Linux Binaries
         run: bash scripts/download-binaries.sh linux
+
+      - name: Build App Bundles
+        run: npm run build
 
       - name: Build Linux Package
         run: npx electron-builder --linux AppImage --x64
